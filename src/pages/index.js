@@ -250,7 +250,7 @@ export default function Home() {
         }}
       >
         <div style={{ fontSize: '5rem', fontWeight: 'bolder' }}>
-          POLYRYHTHMIC
+          POLYRHYTHMIC
         </div>
         <canvas ref={canvasRef} width="800px" height="800px" />
       </main>
