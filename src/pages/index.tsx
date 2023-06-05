@@ -85,8 +85,8 @@ export default function Home() {
     setKeys([
       ...colors.map((color, index) => {
         if (typeof Audio != undefined) {
-          const audio = new Audio('/audio/vibra_1.wav');
-          audio.volume = 0.15;
+          const audio = new Audio(`/audio/vibra_${index + 1}.wav`);
+          audio.volume = 0.35;
           return audio;
         }
         return undefined;
@@ -226,9 +226,6 @@ export default function Home() {
           flexDirection: 'column',
         }}
       >
-        <button onClick={handleToggleSound} style={{ zIndex: 999 }}>
-          Toggle sound: {String(sound)}
-        </button>
         <div id="background-image" />
         <div id="background-filter" />
         <div
@@ -237,6 +234,18 @@ export default function Home() {
         >
           <p>POLYRHYTHMS</p>
         </div>
+        <button
+          onClick={handleToggleSound}
+          style={{
+            zIndex: 999,
+            padding: '0.4rem',
+            borderRadius: '10px',
+            borderStyle: 'none',
+            boxShadow: '2px 1px 1px grey',
+          }}
+        >
+          Toggle sound: {String(sound)}
+        </button>
         <canvas ref={canvasRef} width="800px" height="800px" />
       </main>
     </>
