@@ -22,3 +22,22 @@ canvas {
   position: relative;
   z-index: 9;
 }
+
+#background-image {
+  z-index: 1;
+  background-image: url('../../public/images/lo-fi-02.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.6;
+  -webkit-filter: blur(4px) grayscale(30%);
+  filter: blur(4px) grayscale(30%);
+}
+
+#background-image,
+#background-filter {
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+}

@@ -1,102 +1,33 @@
-import styles from '@/styles/Home.module.css';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Inter } from 'next/font/google';
+import {
+  calculateNextImpactTime,
+  calculatePositionOnArc,
+  calculateVelocity,
+  colors,
+  determineOpacity,
+  settings,
+} from '../utils';
 
-const colors = [
-  '#D0E7F5',
-  '#D9E7F4',
-  '#D6E3F4',
-  '#BCDFF5',
-  '#B7D9F4',
-  '#C3D4F0',
-  '#9DC1F3',
-  '#9AA9F4',
-  '#8D83EF',
-  '#AE69F0',
-  '#D46FF1',
-  '#DB5AE7',
-  '#D911DA',
-  '#D601CB',
-  '#E713BF',
-  '#F24CAE',
-  '#FB79AB',
-  '#FFB6C1',
-  '#FED2CF',
-  '#FDDFD5',
-  '#FEDCD1',
-];
-
-const settings = {
-  startTime: new Date().getTime(), // This can be in the future
-  duration: 900, // Total time for all dots to realign at the starting point
-  maxCycles: Math.max(colors.length, 100), // Must be above colors.length or else...
-  soundEnabled: false, // User still must interact with screen first
-  pulseEnabled: true, // Pulse will only show if sound is enabled as well
-  instrument: 'vibraphone', // "default" | "wave" | "vibraphone"
-};
-
-const calculateVelocity = (index) => {
-  const numberOfCycles = settings.maxCycles - index,
-    distancePerCycle = 2 * Math.PI;
-
-  return (numberOfCycles * distancePerCycle) / settings.duration;
-};
-
-const calculateNextImpactTime = (currentImpactTime, velocity) => {
-  return currentImpactTime + (Math.PI / velocity) * 1000;
-};
-
-const calculateDynamicOpacity = (
-  currentTime,
-  lastImpactTime,
-  baseOpacity,
-  maxOpacity,
-  duration
-) => {
-  const timeSinceImpact = currentTime - lastImpactTime,
-    percentage = Math.min(timeSinceImpact / duration, 1),
-    opacityDelta = maxOpacity - baseOpacity;
-
-  return maxOpacity - opacityDelta * percentage;
-};
-
-const determineOpacity = (
-  currentTime,
-  lastImpactTime,
-  baseOpacity,
-  maxOpacity,
-  duration
-) => {
-  if (!settings.pulseEnabled) return baseOpacity;
-
-  return calculateDynamicOpacity(
-    currentTime,
-    lastImpactTime,
-    baseOpacity,
-    maxOpacity,
-    duration
-  );
-};
+const inter = Inter({ subsets: ['latin'] });
 
 export default function Home() {
-  const canvasRef = useRef(null);
-  const [arcs, setArcs] = useState([]);
-  const [ctx, setCtx] = useState(null);
-  const [canvasObj, setCanvasObj] = useState(null);
+  const canvasRef = useRef<Nullable<HTMLCanvasElement>>(null);
+  const [canvasObj, setCanvasObj] = useState<Nullable<HTMLCanvasElement>>(null);
+  const [ctx, setCtx] = useState<Nullable<CanvasRenderingContext2D>>(null);
+  const [arcs, setArcs] = useState<Arc[]>([]);
 
   const drawArc = useCallback(
     (x, y, radius, start, end, action = 'stroke') => {
-      ctx.beginPath();
-      ctx.arc(x, y, radius, start, end);
-      if (action === 'stroke') ctx.stroke();
-      else ctx.fill();
+      if (ctx) {
+        ctx.beginPath();
+        ctx.arc(x, y, radius, start, end);
+        if (action === 'stroke') ctx.stroke();
+        else ctx.fill();
+      }
     },
     [ctx]
   );
-
-  const calculatePositionOnArc = (center, radius, angle) => ({
-    x: center.x + radius * Math.cos(angle),
-    y: center.y + radius * Math.sin(angle),
-  });
 
   const drawPointOnArc = useCallback(
     (center, arcRadius, pointRadius, angle) => {
@@ -109,9 +40,10 @@ export default function Home() {
 
   useEffect(() => {
     const canvasObj = canvasRef.current;
-    const ctx = canvasObj?.getContext('2d');
-    setCtx(ctx);
-    setCanvasObj(canvasObj);
+    if (canvasObj) {
+      setCtx(canvasObj.getContext('2d'));
+      setCanvasObj(canvasObj);
+    }
 
     setArcs([
       ...colors.map((color, index) => {
@@ -131,35 +63,41 @@ export default function Home() {
       }),
     ]);
 
-    ctx.lineCap = 'round';
-  }, []);
+    if (ctx) {
+      ctx.lineCap = 'round';
+    }
+  }, [ctx]);
 
   const draw = useCallback(() => {
     if (!ctx) return;
-    ctx.clearRect(0, 0, canvasObj.clientWidth, canvasObj.clientHeight);
+
+    const canvasWidth = canvasObj?.clientWidth as number;
+    const canvasHeight = canvasObj?.clientHeight as number;
+
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     const currentTime = new Date().getTime(),
       elapsedTime = (currentTime - settings.startTime) / 1000;
 
-    const length = Math.min(canvasObj?.width, canvasObj?.height) * 0.9,
-      offset = (canvasObj?.width - length) / 2;
+    const length = Math.min(canvasWidth, canvasHeight) * 0.9,
+      offset = (canvasWidth - length) / 2;
 
     const start = {
       x: offset,
-      y: canvasObj?.height / 2,
+      y: canvasHeight / 2,
     };
 
     const end = {
-      x: canvasObj?.width - offset,
-      y: canvasObj?.height / 2,
+      x: canvasWidth - offset,
+      y: canvasHeight / 2,
     };
 
     const center = {
-      x: canvasObj?.width / 2,
-      y: canvasObj?.height / 2,
+      x: canvasWidth / 2,
+      y: canvasHeight / 2,
     };
 
-    const base = {
+    const base: Record<string, number> = {
       length: end.x - start.x,
       minAngle: 0,
       startAngle: 0,
@@ -183,7 +121,7 @@ export default function Home() {
         1000
       );
       ctx.lineWidth = base.length * 0.002;
-      ctx.strokeStyle = arc.color;
+      ctx.strokeStyle = arc.color as string;
 
       const offset = (base.circleRadius * (5 / 3)) / radius;
 
@@ -204,14 +142,14 @@ export default function Home() {
         0.85,
         1000
       );
-      ctx.fillStyle = arc.color;
+      ctx.fillStyle = arc.color as string;
 
       drawPointOnArc(center, radius, base.circleRadius * 0.75, Math.PI);
       drawPointOnArc(center, radius, base.circleRadius * 0.75, 2 * Math.PI);
 
       // Draw moving circles
       ctx.globalAlpha = 1;
-      ctx.fillStyle = arc.color;
+      ctx.fillStyle = arc.color as string;
 
       if (currentTime >= arc.nextImpactTime) {
         // if (settings.soundEnabled) {
@@ -249,8 +187,13 @@ export default function Home() {
           flexDirection: 'column',
         }}
       >
-        <div style={{ fontSize: '5rem', fontWeight: 'bolder' }}>
-          POLYRHYTHMIC
+        <div id="background-image" />
+        <div id="background-filter" />
+        <div
+          className={inter.className}
+          style={{ fontSize: '5rem', fontWeight: 'bolder' }}
+        >
+          <p>POLYRHYTHMS</p>
         </div>
         <canvas ref={canvasRef} width="800px" height="800px" />
       </main>
