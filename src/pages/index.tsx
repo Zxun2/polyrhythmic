@@ -8,7 +8,6 @@ import {
   determineOpacity,
   settings,
 } from '../utils';
-import InfoDialogDemo from '../components/InfoButton';
 
 const inter = Inter({ subsets: ['latin'] });
 
