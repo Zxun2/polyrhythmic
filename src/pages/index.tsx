@@ -8,6 +8,7 @@ import {
   determineOpacity,
   settings,
 } from '../utils';
+import InfoDialogDemo from '../components/InfoButton';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -240,13 +241,18 @@ export default function Home() {
             zIndex: 999,
             padding: '0.4rem',
             borderRadius: '10px',
-            borderStyle: 'none',
-            boxShadow: '2px 1px 1px grey',
+            borderWidth: '1px',
+            borderColor: 'black',
           }}
         >
           Toggle sound: {String(sound)}
         </button>
-        <canvas ref={canvasRef} width="800px" height="800px" />
+        <canvas
+          ref={canvasRef}
+          width="700px"
+          height="700px"
+          className="Button mauve"
+        />
       </main>
     </>
   );
